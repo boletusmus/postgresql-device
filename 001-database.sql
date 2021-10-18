@@ -230,3 +230,46 @@ select * from public.readings;
 select * from public.readings_rejected;
 
 select r.id, d.* from public.readings r inner join public.device d on d.id=r.device_id;
+
+
+drop table public.software;
+
+select * from public.software;
+
+create sequence sotware_id;
+
+create table public.software (
+id int not null default nextval('sotware_id') primary key
+,name text not null unique
+);
+
+select * from public.software s ;
+
+-- drop function insert_software(text);
+create or replace function insert_software(aname text) returns boolean
+as $$
+with insert_rows as (
+	insert into public.software (name)
+	values ($1)
+	on conflict do nothing
+	returning 1
+)
+select count(*)>0 from insert_rows;
+$$
+language sql;
+
+create or replace function update_software(id int, name text) returns boolean
+as $$
+with update_rows as (
+	update public.software
+	set name=$2
+	where id=$1
+	returning 1
+)
+select count(*)>0 from update_rows;
+$$
+language sql;
+
+
+select insert_software('notepad+++');
+select update_software(14,'Notepad++');
