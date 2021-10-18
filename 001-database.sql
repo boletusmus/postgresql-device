@@ -52,7 +52,8 @@ create table public.device
 (
 id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 name text not null,
-type text not null
+type text not null,
+constraint uq_device unique (name,type)
 );
 
 -- alan:    single_b_1, single_b_2, single_b_3
