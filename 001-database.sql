@@ -269,3 +269,65 @@ language sql;
 
 select insert_software('notepad+++');
 select update_software(14,'Notepad++');
+
+
+
+create table foo (id int, padding text);
+create table bar (id int, padding text);
+create table baz (id int, padding text);
+
+
+insert into foo (id, padding)
+    select id, md5(random()::text)
+    from generate_series(1, 100) as id
+--order by random();
+
+select * from foo order by id;
+select * from bar order by id;
+select * from baz order by id;
+
+-- setup
+delete from bar where 1=1;
+delete from baz where 1=1;
+insert into bar select * from foo where id > 30 and id < 38
+--insert into bar select * from foo where id > 30 and id < 35
+
+
+
+drop table foo 
+drop table bar
+drop table baz 
+
+with to_insert as (
+select id from bar where id > 35
+)
+, first as (
+	delete from bar where id in (select id from to_insert)
+	returning *
+)
+
+insert into baz 
+select * from first
+where
+	exists (select * from first);
+
+create or replace function inset_them () returns boolean
+as $$
+	with to_insert as (
+	select id from bar where id > 35
+	)
+	, first as (
+		delete from bar where id in (select id from to_insert)
+		returning *
+	)
+	, second as (
+	insert into baz 
+	select * from first
+	where
+		exists (select * from first)
+	)
+	select exists (select * from to_insert); -- return value from function
+$$
+language sql;
+
+select public.inset_them();
